@@ -5,8 +5,10 @@ var client, server;
 var optsClient = require('./etc/optsclient');
 var optsServer = require('./etc/optsserver');
 
-/* Test Batch Function */
-var testBatch = function (s, c, id, debug) {
+/** 
+ * Test Batch
+ **/
+var testBatch = function (s, c, id, debug, finaly) {
   var count = 0; var check = 0;
 
   var reportstat = function (valid) {
@@ -14,8 +16,10 @@ var testBatch = function (s, c, id, debug) {
     if (valid)
       check++;
 
-    if (count === 17)
+    if (count === 17) {
       console.log('- Test ' + id + ': ' + check + '/' + count + ' passed.');
+      finaly();
+    }
   };
 
   /* Server Methode - add */
@@ -520,12 +524,12 @@ var testBatch = function (s, c, id, debug) {
    * - result null
    */
   c.call([{"jsonrpc": "2.0", "method": "addup", "params": [23, 42], "id": "15.1"},
-               {"jsonrpc": "2.0", "method": "notify", "params": [23, 42], "id": "15.2"},
-               {"jsonrpc": "2.0", "method": "subtract", "params": [23, 42], "id": "15.3"},
-               {"jsonrpc": "2.0", "method": "foobar", "params": [23, 42], "id": "15.4"},
-               {"jsonrpc": "2.0", "method": "addup", "params": [23, 42, 5], "id": "15.5"},
-               {"jsonrpc": "2.0", "method": 1, "params": [23, 42, 5], "id": "15.6"}
-              ], function (err, res) {
+          {"jsonrpc": "2.0", "method": "notify", "params": [23, 42], "id": "15.2"},
+          {"jsonrpc": "2.0", "method": "subtract", "params": [23, 42], "id": "15.3"},
+          {"jsonrpc": "2.0", "method": "foobar", "params": [23, 42], "id": "15.4"},
+          {"jsonrpc": "2.0", "method": "addup", "params": [23, 42, 5], "id": "15.5"},
+          {"jsonrpc": "2.0", "method": 1, "params": [23, 42, 5], "id": "15.6"}
+        ], function (err, res) {
     var valid = true;
 
     if (debug)
@@ -580,15 +584,20 @@ var testBatch = function (s, c, id, debug) {
   });
 };
 
-//TODO Perform test with ssl and auth
+/**
+ * Execute Tests
+ **/
+
+/* TODO Perform test with ssl and auth */
 // client = new rpc.Client(optsClient);
 // server = new rpc.Server(optsServer);
 
-//TODO Perform test with ssl but no auth
+/* TODO Perform test with ssl but no auth */
 // optsClient.auth = null;
 // optss.auth = null;
 // client = new rpc.Client(optsClient);
 // server = new rpc.Server(optsServer);
+
 
 /* Perform test without ssl but with auth */
 optsClient.ssl = null; optsClient.port = 5081;
@@ -596,16 +605,17 @@ optsServer.ssl = null; optsServer.port = 5081;
 
 var c81 = new rpc.Client(optsClient);
 var s81 = new rpc.Server(optsServer);
+var d81 = false;
 
 s81.start(function (error) {
   if (!error) {
     console.log('- Test (s81): start (ssl = off, auth = on)');
-    testBatch(s81, c81, '(s81)', false);
-    setTimeout((function() {
+    testBatch(s81, c81, '(s81)', d81, function() {      
       s81.stop(function (error) {
         if (error) console.log(error);
+        else console.log('- Test s81 end.');
       });
-    }), 500);
+    });
   }
   else {
     console.log('- Server (s81): start failed');
@@ -620,17 +630,17 @@ optsServer.auth = null; optsServer.port = 5082;
 
 var c82 = new rpc.Client(optsClient);
 var s82 = new rpc.Server(optsServer);
-var d82 = true;
+var d82 = false;
 
 s82.start(function (error) {
   if (!error) {
     console.log('- Test (s82): start (ssl = off, auth = off)');
-    testBatch(s82, c82, '(s82)', false);
-    setTimeout((function() {
+    testBatch(s82, c82, '(s82)', d82, function() {      
       s82.stop(function (error) {
         if (error) console.log(error);
+        else console.log('- Test s82 end');
       });
-    }), 500);
+    });
   }
   else {
     console.log('- Server (s82): start failed');
